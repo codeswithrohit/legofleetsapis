@@ -1,13 +1,21 @@
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Credentials', true);
+  // 1. SET CORS HEADERS TO ALLOW FRONTEND REQUESTS
+  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
+
+  // 2. HANDLE THE CORS PREFLIGHT (OPTIONS) REQUEST
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // 3. BLOCK ANYTHING THAT IS NOT A POST REQUEST
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -16,7 +24,7 @@ export default async function handler(req, res) {
   console.log("Form Data:", formData);
 
   try {
-    // SETUP NODEMAILER TRANSPORTER
+    // 4. SETUP NODEMAILER TRANSPORTER
     const transporter = nodemailer.createTransport({
       host: "mail.legofleets.in", 
       port: 465, 
@@ -33,7 +41,7 @@ export default async function handler(req, res) {
                         formData.selectedVehicleType === 'sedan' ? 'SEDAN' :
                         formData.selectedVehicleType || 'N/A';
 
-    // SEND EMAIL WITHOUT PDF ATTACHMENT
+    // 5. SEND THE EMAIL
     const info = await transporter.sendMail({
       from: '"LegoFleets" <sales@legofleets.in>',
       to: formData.email,
